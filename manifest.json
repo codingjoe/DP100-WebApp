@@ -1,8 +1,9 @@
 {
-  "name": "DP100 Multimeter",
+  "name": "DP100 Digital Power Supply",
+  "description": "Web application for DP100 Digital Power Supply.",
   "short_name": "DP100",
-  "theme_color": "#2196f3",
-  "background_color": "#2196f3",
+  "theme_color": "#03a2e9",
+  "background_color": "#03a2e9",
   "display": "fullscreen",
   "scope": "/DP100-WebApp/",
   "start_url": "/DP100-WebApp/",
