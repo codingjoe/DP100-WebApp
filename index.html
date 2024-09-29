@@ -8,16 +8,35 @@
   <link rel="icon" href="assets/icons/icon512_rounded.png" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/uplot@1.6.31/dist/uPlot.min.css" rel="stylesheet">
   <style>
+    :root {
+      color-scheme: light dark;
+    }
+
+    body {
+      color: CanvasText;
+      background-color: Canvas;
+      margin: 0;
+    }
+
     .u-value {
       font-family: monospace;
+      vertical-align: bottom;
+    }
+
+    button#connect {
+      position: absolute;
+      top: 1rem;
+      left: 6rem;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
-<button>connect</button>
+<button id="connect">connect</button>
 <script type="module">
   import uplot from 'https://cdn.jsdelivr.net/npm/uplot@1.6.31/+esm'
 
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
   const vendorId = 11836, productId = 44801  // DP100's HID IDs
   const deviceAddr = 251  // DP100's device address
 
@@ -200,10 +219,9 @@
   }
 
   let opts = {
-    title: 'UV Graph',
     id: 'uv-graph',
-    width: 800,
-    height: 600,
+    width: window.innerWidth,
+    height: window.innerHeight - 32,
     series: [
       {
         label: 'Time',
@@ -244,6 +262,10 @@
         label: 'Voltage (V)',
         value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'V',
         grid: { show: false },
+        stroke: () => dark ? 'white' : 'black',
+        ticks: {
+          stroke: () => dark ? 'white' : 'black',
+        },
       },
       {
         scale: 'A',
@@ -251,6 +273,10 @@
         value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'A',
         side: 1,
         grid: { show: false },
+        stroke: () => dark ? 'white' : 'black',
+        ticks: {
+          stroke: () => dark ? 'white' : 'black',
+        },
       },
       {},
     ],
