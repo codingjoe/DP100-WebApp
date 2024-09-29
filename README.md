@@ -1,6 +1,6 @@
 # DP100 WebApp
 
-![screenshot](screenshot.png)
+![screenshot](screenshot-UI-graph.png)
 
 A browser interface for the DP100 digital power supply by Alientek.
 
