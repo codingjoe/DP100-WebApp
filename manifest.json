@@ -1,0 +1,23 @@
+{
+  "name": "DP100 Multimeter",
+  "short_name": "DP100",
+  "theme_color": "#2196f3",
+  "background_color": "#2196f3",
+  "display": "fullscreen",
+  "scope": "/DP100-WebApp/",
+  "start_url": "/DP100-WebApp/",
+  "icons": [
+    {
+      "purpose": "maskable",
+      "sizes": "512x512",
+      "src": "assets/icons/icon512_maskable.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "512x512",
+      "src": "assets/icons/icon512_rounded.png",
+      "type": "image/png"
+    }
+  ]
+}
