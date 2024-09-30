@@ -5,7 +5,7 @@ const deviceAddr = 251  // DP100's device address
  * Calculate the buffers CRC-16/MODBUS checksum.
  *
  * @param {ArrayBuffer} buffer - The buffer to calculate the CRC16 for.
- * @return {number} - The CRC16 checksum.
+ * @returns {Number} - The CRC16 checksum.
  */
 export function crc16 (buffer) {
   let crc = 0xFFFF
@@ -43,18 +43,6 @@ const FUNCTIONS = Object.freeze({
   NONE: 0xFF,
 })
 
-const WORK_MODES = Object.freeze({
-  CC: 0,
-  CV: 1,
-  OFF: 2,
-})
-
-const WORK_MODE_MAP = {
-  [WORK_MODES.CV]: 'Constant Voltage',
-  [WORK_MODES.CC]: 'Constant Current',
-  [WORK_MODES.OFF]: 'Off',
-}
-
 /** DP100 device class.
  *
  * This class is used to interact with the DP100 power supply.
@@ -69,7 +57,7 @@ const WORK_MODE_MAP = {
  *     console.info('Temperature 1:', temp1, '°C')
  *     console.info('Temperature 2:', temp2, '°C')
  *     console.info('DC 5V:', dc5V, 'V')
- *     console.info('Output Mode:', WORK_MODE_MAP[outMode])
+ *     console.info('Output Mode:', outMode)
  *     console.info('Work State:', workSt)
  *   }
  * }
@@ -79,6 +67,7 @@ const WORK_MODE_MAP = {
  */
 export class DP100 {
 
+  /** The connected DP100 device. */
   device = null
 
   /** Connect to the DP100 device. */
@@ -93,9 +82,12 @@ export class DP100 {
     )
   }
 
-  /** Send a report to the DP100
+  /**
+   * Send a report to the DP100.
+   *
    * @param {Number} functionId -- The function to call on the DP100.
    * @param {Uint8Array} content -- The data to send to the DP100.
+   * @returns {Promise<void>} -- A promise that resolves when the report is sent.
    */
   async sendReport (functionId, content = null) {
     content = content || new Uint8Array(0)
@@ -111,7 +103,7 @@ export class DP100 {
     const checksum = crc16(report.buffer.slice(0, report.length - 2))
     reportView.setUint16(report.length - 2, checksum, true)
     console.debug('device.sendReport', reportView)
-    return this.device.sendReport(0, report)
+    return await this.device.sendReport(0, report)
   }
 
   /** Handle input reports from the DP100
@@ -141,7 +133,7 @@ export class DP100 {
 
     switch (header.functionType) {
       case FUNCTIONS.BASIC_INFO:
-        const basicInfo = {
+        this.receiveBasicInfo({
           vIn: contentView.getUint16(0, true) / 1000,
           vOut: contentView.getUint16(2, true) / 1000,
           iOut: contentView.getUint16(4, true) / 1000,
@@ -151,8 +143,7 @@ export class DP100 {
           dc5V: contentView.getUint16(12, true) / 1000,
           outMode: contentView.getUint8(14),
           workSt: contentView.getUint8(15)
-        }
-        this.receiveBasicInfo(basicInfo)
+        })
         break
       default:
         console.warn('Unhandled function', header.functionType)
