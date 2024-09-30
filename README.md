@@ -11,16 +11,16 @@ A browser interface for the DP100 digital power supply by Alientek.
 
 ## Usage
 
-You don't need to install anything to use this webapp.
-Just visit [this link](https://johannes.maron.family/DP100-WebApp/) and you're good to go.
+Grap you DP100 power supply and connect the DP100 via it's USB-A port to your computer.
 
-## Development
+Now, visit [DP100 WebApp](https://johannes.maron.family/DP100-WebApp/) and you're good to go.
 
-This project is based on the [WebHID](https://developer.mozilla.org/en-US/docs/Web/API/WebHID_API) API.
-It is a work-in-progress and not feature-complete. The Modbus implementation has been reverse-engineered
-from the Windows library (`ATK-DP100DLL(x64)_2.0.dll`), which can be found as part of the official software.
+_Note, not all browsers support WebHID yet and on Linux you might need to enable write mode first,
+see [Contributing Guide](CONTRIBUTING.md)._
 
-If you want to contribute to this project, you can clone this repository and open the `index.html` file in your browser.
+## Development & Contributing
+
+We welcome contributions to this project. Please read the [Contributing Guidelines](CONTRIBUTING.md) for more information.
 
 ## Credits
 
