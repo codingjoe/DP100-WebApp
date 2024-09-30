@@ -6,8 +6,9 @@ A browser interface for the DP100 digital power supply by Alientek.
 
 ## Features
 
-- Connect to the DP100 using your browser (no installation required).
-- Histogram of the voltage and current levels.
+- 🌐 Connect to the DP100 using your browser (no installation required).
+- 📈 Histogram of the voltage and current levels.
+- ❤️ Free, open source and build with love!
 
 ## Usage
 
