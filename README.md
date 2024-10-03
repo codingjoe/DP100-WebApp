@@ -2,7 +2,7 @@
 
 A browser interface for the DP100 digital power supply by Alientek.
 
-![screenshot-2024-10-03.png](screenshot-2024-10-03.png)
+![Screenshot 2024-10-03 at 19.47.21.png](Screenshot%202024-10-03%20at%2019.47.21.png)
 
 ## Features
 

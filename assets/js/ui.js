@@ -99,7 +99,7 @@ export class DP100Element extends DP100(LitElement) {
         "graph graph graph vOut" 2fr
         "graph graph graph iOut" 2fr
         "graph graph graph pOut" 1fr
-        "mode opp vInMax info" 120px / 1fr 1fr 1fr 360px;
+        "mode opp vInMax info" 120px / 1fr 1fr 1fr 380px;
       height: 100vh;
     }
 
@@ -112,14 +112,17 @@ export class DP100Element extends DP100(LitElement) {
       grid-template:
         "label value-1"
         "label value-2" / min-content auto;
-      gap: 1rem;
       padding: 1rem;
 
       .label {
         grid-area: label;
         font-weight: bold;
-        font-size: 5em;
+        font-size: 4em;
         margin: auto 0;
+
+        sub {
+          font-size: 2rem;
+        }
       }
 
       .value-1, .value-2 {
@@ -128,7 +131,11 @@ export class DP100Element extends DP100(LitElement) {
       }
 
       .value-1 {
-        margin: auto 0 0;
+        margin: 0.25em 0 0;
+
+        input {
+          max-width: 4em;
+        }
       }
 
       .value-2 {
@@ -136,23 +143,43 @@ export class DP100Element extends DP100(LitElement) {
       }
     }
 
+    .group--big {
+      grid-template:
+      "label value-1"
+      "value-2 value-2" / min-content auto;
+
+      .value-2 {
+        grid-column: 1 / 3;
+        line-height: 0;
+
+        input {
+          width: 100%;
+        }
+      }
+    }
+
     #graph {
       grid-area: graph;
       border: thick solid CanvasText;
+    }
+    
+    #vOut, #iOut, #pOut {
+      font-size: 2em;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
     }
 
     #vOut {
       grid-area: vOut;
       background-color: rgb(250 200 0 / 30%);
       border: thick solid rgb(250 200 0 / 100%);
-      font-size: 2em;
     }
 
     #iOut {
       grid-area: iOut;
       background-color: rgb(0 200 0 / 30%);
       border: thick solid rgb(0 200 0 / 100%);
-      font-size: 2em;
     }
 
     #pOut {
@@ -206,66 +233,93 @@ export class DP100Element extends DP100(LitElement) {
     return html`
       <link href="https://cdn.jsdelivr.net/npm/uplot@1.6.31/dist/uPlot.min.css" rel="stylesheet">
       <div id="graph"></div>
-      <div id="vOut" class="group">
-        <div class="label">
-          V
+      <div id="vOut">
+        <div class="group">
+          <div class="label">
+            V<sub>out</sub>
+          </div>
+          <div class="value-1">
+            ${this.info?.vOut.toLocaleString(undefined, { minimumFractionDigits: 3 })}
+          </div>
+          <div class="value-2">
+          </div>
         </div>
-        <div class="value-1">
-          <input type="number" name="vo_set" @change=${this.changeVoltage.bind(this)}
-                 .value=${this.settings?.vo_set} min="0"
-                 max="${this.info?.voMax}" step="0.001">
-        </div>
-        <div class="value-2">
-          <input type="range" name="vo_set" @input=${this.changeVoltage.bind(this)}
-                 .value=${this.settings?.vo_set} min="0"
-                 max="${this.info?.voMax}" step="0.1">
-        </div>
-      </div>
-      <div id="iOut" class="group">
-        <div class="label">
-          A
-        </div>
-        <div class="value-1">
-          <input type="number" @change=${this.changeCurrent.bind(this)}
-                 .value=${this.settings?.io_set} min="0"
-                 max="5" step="0.001">
-        </div>
-        <div class="value-2">
-          <input type="range" @input="${this.changeCurrent.bind(this)}"
-                 .value=${this.settings?.io_set} min="0"
-                 max="5" step="0.1">
+        <div class="group group--big">
+          <div class="label">
+            V<sub>set</sub>
+          </div>
+          <div class="value-1">
+            <input type="number" name="vo_set" @change=${this.changeVoltage.bind(this)}
+                   .value=${this.settings?.vo_set} min="0"
+                   max="${this.info?.voMax}" step="0.001">
+          </div>
+          <div class="value-2">
+            <input type="range" name="vo_set" @input=${this.changeVoltage.bind(this)}
+                   .value=${this.settings?.vo_set} min="0"
+                   max="${this.info?.voMax}" step="0.1">
+          </div>
         </div>
       </div>
-      <div id="pOut" class="group">
-        <div class="label">
-          W
+      <div id="iOut">
+        <div class="group">
+          <div class="label">
+            A<sub>out</sub>
+          </div>
+          <div class="value-1">
+            ${this.info?.iOut.toLocaleString(undefined, { minimumFractionDigits: 3 })}
+          </div>
+          <div class="value-2">
+          </div>
         </div>
-        <div class="value-1">
+        <div class="group group--big">
+          <div class="label">
+            A<sub>set</sub>
+          </div>
+          <div class="value-1">
+            <input type="number" @change=${this.changeCurrent.bind(this)}
+                   .value=${this.settings?.io_set} min="0"
+                   max="5" step="0.001">
+          </div>
+          <div class="value-2">
+            <input type="range" @input="${this.changeCurrent.bind(this)}"
+                   .value=${this.settings?.io_set} min="0"
+                   max="5" step="0.1">
+          </div>
         </div>
-        <div class="value-2">
-          ${(this.info?.iOut * this.info?.vOut).toLocaleString(undefined, { minimumFractionDigits: 3 })}
+      </div>
+      <div id="pOut">
+        <div class="group">
+          <div class="label">
+            W<sub>out</sub>
+          </div>
+          <div class="value-1">
+          </div>
+          <div class="value-2">
+            ${(this.info?.iOut * this.info?.vOut).toLocaleString(undefined, { minimumFractionDigits: 3 })}
+          </div>
         </div>
       </div>
       <div id="mode">
         ${this.renderMode()}
       </div>
       <div id="opp" class="group">
-        <div class="label">OPP</div>
+        <div class="label"></div>
         <div class="value-1">
           OVP
-          <input type="number" @change="${this.changeOverVoltageProtection.bind(this)}"
-                 .value=${this.settings?.ovp_set} min="0" max="30" step="0.01">V
+          ${this.settings?.ovp_set.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;V
         </div>
         <div class="value-2">
           OCP
-          <input type="number" @change="${this.changeOverCurrentProtection.bind(this)}"
-                 .value=${this.settings?.ocp_set} min="0" max="5" step="0.001">A
+          ${this.settings?.ocp_set.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;A
         </div>
       </div>
       <div id="vInMax" class="group">
         <div class="label">V</div>
-        <div class="value-1">In ${this.info?.vIn.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;V</div>
-        <div class="value-2">Out ${this.info?.voMax.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;V
+        <div class="value-1">In
+          ${this.info?.vIn.toLocaleString(undefined, { minimumFractionDigits: 3, minimumIntegerDigits: 2 })}&numsp;V
+        </div>
+        <div class="value-2">Out<sub>max</sub>
+          ${this.info?.voMax.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;V
         </div>
       </div>
       <div id="info" class="group">
@@ -324,14 +378,6 @@ export class DP100Element extends DP100(LitElement) {
     this.setBasicSettings({ io_set: event.target.value })
   }
 
-  changeOverVoltageProtection (event) {
-    this.setBasicSettings({ ovp_set: event.target.value })
-  }
-
-  changeOverCurrentProtection (event) {
-    this.setBasicSettings({ ocp_set: event.target.value  })
-  }
-
   firstUpdated () {
     const graphElement = this.shadowRoot.querySelector('#graph')
     this.graph = new uplot({
@@ -348,7 +394,7 @@ export class DP100Element extends DP100(LitElement) {
     this.vHistory.push(vOut)
     this.iHistory.push(iOut)
     this.wHistory.push(vOut * iOut)
-    if (this.vHistory.length > 360) {
+    if (this.vHistory.length > 30 * 1000 / this.refreshRate) {
       this.tHistory.shift()
       this.vHistory.shift()
       this.iHistory.shift()

@@ -72,8 +72,8 @@ const FUNCTIONS = Object.freeze({
 export function DP100 (Base) {
   return class extends Base {
 
-    /** The connected DP100 device. */
     settingsQueue = []
+    refreshRate = 10  // 10ms (100Hz)
 
     /** Connect to the DP100 device. */
     async connect () {
@@ -82,7 +82,16 @@ export function DP100 (Base) {
       })
       await this.device.open()
       this.device.addEventListener('inputreport', this.inputReportHandler.bind(this))
-      this.getBasicSettings().then(() => setInterval(() => this.sendReport(FUNCTIONS.BASIC_INFO), 100))
+      this.device.addEventListener('disconnect', () => {
+        console.warn('Device disconnected')
+        this.device = null
+        clearInterval(this.updateLoop)
+      })
+      this.getBasicSettings().then(() => {
+        this.updateLoop = setInterval(() => {
+          this.sendReport(FUNCTIONS.BASIC_INFO)
+        }, this.refreshRate)
+      })
     }
 
     /**
@@ -111,7 +120,6 @@ export function DP100 (Base) {
     }
 
     async getBasicSettings () {
-      console.info('getBasicSettings')
       await this.sendReport(FUNCTIONS.BASIC_SET, new Uint8Array([0 | 0x80]), 0)
     }
 
@@ -218,7 +226,7 @@ export function DP100 (Base) {
      * @param {Number} basicSettings.ocp_set - Over-current protection setting in A.
      */
     receiveBasicSettings ({ index, state, vo_set, io_set, ovp_set, ocp_set }) {
-      console.debug('receiveBasicSettings', { index, state, vo_set, io_set, ovp_set, ocp_set })
+      console.info('receiveBasicSettings', { index, state, vo_set, io_set, ovp_set, ocp_set })
       this.settings = { state, vo_set, io_set, ovp_set, ocp_set }
     }
   }
