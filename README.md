@@ -7,8 +7,9 @@ A browser interface for the DP100 digital power supply by Alientek.
 ## Features
 
 - 🌐 Connect to the DP100 using your browser (no installation required).
-- 📈 Power diagram of the voltage and current levels.
-- 📏 Set the voltage and current levels.
+- 🍎 Works on all platforms (Windows, macOS, Linux).
+- 📈 Monitor your power diagram of the voltage and current levels.
+- 📏 Comfortably set the voltage and current levels.
 - ❤️ Free, open source and build with love!
 
 ## Usage
