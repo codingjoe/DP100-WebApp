@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="assets/icons/icon512_rounded.png" type="image/png">
-  <link href="https://cdn.jsdelivr.net/npm/uplot@1.6.31/dist/uPlot.min.css" rel="stylesheet">
   <style>
     :root {
       color-scheme: light dark;
@@ -17,135 +16,20 @@
       background-color: Canvas;
       margin: 0;
     }
-
-    .u-value {
-      font-family: monospace;
-      vertical-align: bottom;
-    }
-
-    button#connect {
-      position: absolute;
-      top: 1rem;
-      left: 6rem;
-      z-index: 10;
-    }
   </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "#js/": "./assets/js/",
+        "lit": "https://cdn.jsdelivr.net/npm/lit/+esm",
+        "uplot": "https://cdn.jsdelivr.net/npm/uplot/+esm"
+      }
+    }
+  </script>
 </head>
 <body>
-<button id="connect">connect</button>
-<script type="module">
-  import uplot from 'https://cdn.jsdelivr.net/npm/uplot@1.6.31/+esm'
-  import { DP100 } from './assets/js/dp100.js'
-
-  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
-
-  let opts = {
-    id: 'uv-graph',
-    width: window.innerWidth,
-    height: window.innerHeight - 32,
-    series: [
-      {
-        label: 'Time',
-        value: (self, rawValue) => rawValue === null ? '   N/A' : new Date(rawValue * 1000).toLocaleTimeString(),
-      },
-      {
-        show: true,
-        spanGaps: true,
-        label: 'Voltage',
-        value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'V',
-        scale: 'V',
-        stroke: 'rgb(250, 200, 0)',
-        width: 2,
-      }, {
-        show: true,
-        spanGaps: true,
-        label: 'Current',
-        value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'A',
-        scale: 'A',
-        stroke: 'green',
-        width: 2,
-      }, {
-        show: true,
-        spanGaps: true,
-        label: 'Power',
-        value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'W',
-        scale: 'W',
-        fill: 'rgba(200, 0, 200, 0.3)',
-        width: 0,
-      }
-    ],
-    axes: [
-      {
-        show: false
-      },
-      {
-        scale: 'V',
-        label: 'Voltage (V)',
-        value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'V',
-        grid: { show: false },
-        stroke: () => dark ? 'white' : 'black',
-        ticks: {
-          stroke: () => dark ? 'white' : 'black',
-        },
-      },
-      {
-        scale: 'A',
-        label: 'Current (A)',
-        value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'A',
-        side: 1,
-        grid: { show: false },
-        stroke: () => dark ? 'white' : 'black',
-        ticks: {
-          stroke: () => dark ? 'white' : 'black',
-        },
-      },
-      {},
-    ],
-    scales: {
-      'x': {},
-      'V': {
-        auto: false,
-        range: [0, 30],
-      },
-      'A': {
-        auto: false,
-        range: [0, 5],
-      },
-      'W': {
-        auto: false,
-        range: [0, 100],
-      }
-    },
-  }
-
-  const tHistory = []
-  const vHistory = []
-  const iHistory = []
-  const wHistory = []
-  const data = [tHistory, vHistory, iHistory, wHistory]
-
-  const graph = new uplot(opts, data, document.body)
-
-  document.querySelector('button').addEventListener('click', async () => {
-    const dp100 = new DP100()
-    await dp100.connect()
-
-    document.addEventListener('basicInfo', (event) => {
-      const { vOut, iOut } = event.detail
-      tHistory.push(Date.now() / 1000)
-      vHistory.push(vOut)
-      iHistory.push(iOut)
-      wHistory.push(vOut * iOut)
-      if (vHistory.length > 1200) {
-        tHistory.shift()
-        vHistory.shift()
-        iHistory.shift()
-        wHistory.shift()
-      }
-      graph.setData(data)
-    })
-
-  })
-</script>
+<dp100-element>
+</dp100-element>
+<script type="module">import '#js/ui.js'</script>
 </body>
 </html>
