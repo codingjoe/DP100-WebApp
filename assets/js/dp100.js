@@ -27,20 +27,26 @@ export function crc16 (buffer) {
 
 /** DP100 Modbus Function IDs */
 const FUNCTIONS = Object.freeze({
-  DEVICE_INFO: 0x10,
-  FIRM_INFO: 17,
-  START_TRANS: 18,
-  DATA_TRANS: 19,
-  END_TRANS: 20,
-  DEV_UPGRADE: 21,
-  BASIC_INFO: 48,
-  BASIC_SET: 53,
-  SYSTEM_INFO: 0x40,
-  SYSTEM_SET: 69,
-  SCAN_OUT: 80,
-  SERIAL_OUT: 85,
-  DISCONNECT: 0x80,
-  NONE: 0xFF,
+  DEVICE_INFO: 0x10,  // 16
+  FIRM_INFO: 0x11,  // 17
+  START_TRANS: 0x12,  // 18
+  DATA_TRANS: 0x13,  // 19
+  END_TRANS: 0x14,  // 20
+  DEV_UPGRADE: 0x15,  // 21
+  BASIC_INFO: 0x30,  // 48
+  BASIC_SET: 0x35,  // 53
+  SYSTEM_INFO: 0x40,  // 64
+  SYSTEM_SET: 0x45,  // 69
+  SCAN_OUT: 0x50,  // 80
+  SERIAL_OUT: 0x55,  // 85
+  DISCONNECT: 0x80,  // 128
+  NONE: 0xFF  // 255
+})
+
+const MAGIC_BYTES = Object.freeze({
+  OUTPUT: 0x20,  // 32
+  SETTING: 0x40,  // 64
+  READ: 0x80  // 128
 })
 
 /** DP100 device class.
@@ -87,6 +93,8 @@ export function DP100 (Base) {
         this.device = null
         clearInterval(this.updateLoop)
       })
+      this.sendReport(FUNCTIONS.SYSTEM_INFO)
+      this.sendReport(FUNCTIONS.DEVICE_INFO)
       this.getBasicSettings().then(() => {
         this.updateLoop = setInterval(() => {
           this.sendReport(FUNCTIONS.BASIC_INFO)
@@ -120,25 +128,39 @@ export function DP100 (Base) {
     }
 
     async getBasicSettings () {
-      await this.sendReport(FUNCTIONS.BASIC_SET, new Uint8Array([0 | 0x80]), 0)
+      await this.sendReport(FUNCTIONS.BASIC_SET, new Uint8Array([MAGIC_BYTES.READ]), 0)
     }
 
-    async setBasicSettings ({ state, vo_set, io_set, ovp_set, ocp_set }) {
+    async setBasicOutput ({ state, vo_set, io_set }) {
       if (this.settings === undefined) {
         throw new Error('Settings not loaded')
       }
-      console.info('setBasicSettings', { state, vo_set, io_set, ovp_set, ocp_set })
+      console.info('setBasicOutput', { state, vo_set, io_set })
       const basicSet = Object.assign({}, this.settings, Object.fromEntries(Object.entries({
-        state, vo_set, io_set, ovp_set, ocp_set
+        state, vo_set, io_set
       }).filter(([k, v]) => v !== undefined)))
-      const index = this.settingsQueue.length
-      this.settingsQueue[index] = basicSet
+      this.settingsQueue.push(basicSet)
       const out = new Uint8Array(10)
       const outDv = new DataView(out.buffer, out.byteOffset, out.length)
-      outDv.setUint8(0, index | 0x20)
+      outDv.setUint8(0, MAGIC_BYTES.OUTPUT)
       outDv.setUint8(1, basicSet.state)
       outDv.setUint16(2, basicSet.vo_set * 1000, true)
       outDv.setUint16(4, basicSet.io_set * 1000, true)
+      await this.sendReport(FUNCTIONS.BASIC_SET, out, 0)
+    }
+
+    async setBasicSettings ({ ovp_set, ocp_set }) {
+      if (this.settings === undefined) {
+        throw new Error('Settings not loaded')
+      }
+      console.info('setBasicSettings', { ovp_set, ocp_set })
+      const basicSet = Object.assign({}, this.settings, Object.fromEntries(Object.entries({
+        ovp_set, ocp_set
+      }).filter(([k, v]) => v !== undefined)))
+      this.settingsQueue.push(basicSet)
+      const out = new Uint8Array(10)
+      const outDv = new DataView(out.buffer, out.byteOffset, out.length)
+      outDv.setUint8(0, MAGIC_BYTES.SETTING)
       outDv.setUint16(6, basicSet.ovp_set * 1000, true)
       outDv.setUint16(8, basicSet.ocp_set * 1000, true)
       await this.sendReport(FUNCTIONS.BASIC_SET, out, 0)
@@ -181,12 +203,12 @@ export function DP100 (Base) {
           })
           break
         case FUNCTIONS.BASIC_SET:
-          if (contentView.byteLength === 1) {
-            this.settings = this.settingsQueue.pop(contentView.getUint8(0))
+          if (contentView.byteLength === 1 && contentView.getUint8(0)) {
+            this.settings = this.settingsQueue.pop()
             break
           }
           this.receiveBasicSettings({
-            index: contentView.getUint8(0),
+            ack: contentView.getUint8(0),
             state: contentView.getUint8(1),
             vo_set: contentView.getUint16(2, true) / 1000,
             io_set: contentView.getUint16(4, true) / 1000,
@@ -194,8 +216,31 @@ export function DP100 (Base) {
             ocp_set: contentView.getUint16(8, true) / 1000,
           })
           break
+        case FUNCTIONS.SYSTEM_INFO:
+          this.receiveSystemInfo({
+            otp: contentView.getUint16(0, true),
+            opp: contentView.getUint16(2, true) / 10.0,
+            backlight: contentView.getUint8(4),
+            volume: contentView.getUint8(5),
+            reverse_protection: contentView.getUint8(6),
+            audio_out: contentView.getUint8(7),
+          })
+          break
+        case FUNCTIONS.DEVICE_INFO:
+          console.debug({
+            deviceName: String.fromCharCode(...new Uint8Array(contentView.buffer.slice(0, 15))),
+            hardwareVersion: contentView.getUint16(16, true) / 10,
+            firmwareVersion: contentView.getUint16(18, true) / 10,
+            bootVersion: contentView.getUint16(20, true),
+            runVersion: contentView.getUint16(22, true),
+            serialNumber: new Uint8Array(contentView.buffer.slice(24, 24 + 11)).join(''),
+            year: contentView.getUint16(36, true),
+            month: contentView.getUint8(38),
+            day: contentView.getUint8(39),
+          })
+          break
         default:
-          console.warn('Unhandled function', header.functionType)
+          console.warn('Unhandled function', header.functionType, contentView)
       }
     }
 
@@ -218,16 +263,31 @@ export function DP100 (Base) {
 
     /** Handle basic settings from the DP100
      * @param {Object} basicSettings
-     * @param {Number} basicSettings.index - Setting index.
-     * @param {Number} basicSettings.state - Setting state.
+     * @param {boolean} basicSettings.ack - Acknowledgement.
+     * @param {boolean} basicSettings.state - Setting state.
      * @param {Number} basicSettings.vo_set - Output voltage setting in V.
      * @param {Number} basicSettings.io_set - Output current setting in A.
      * @param {Number} basicSettings.ovp_set - Over-voltage protection setting in V.
      * @param {Number} basicSettings.ocp_set - Over-current protection setting in A.
      */
-    receiveBasicSettings ({ index, state, vo_set, io_set, ovp_set, ocp_set }) {
-      console.info('receiveBasicSettings', { index, state, vo_set, io_set, ovp_set, ocp_set })
+    receiveBasicSettings ({ ack, state, vo_set, io_set, ovp_set, ocp_set }) {
+      console.info('receiveBasicSettings', { ack, state, vo_set, io_set, ovp_set, ocp_set })
       this.settings = { state, vo_set, io_set, ovp_set, ocp_set }
     }
+
+    /** Handle system info from the DP100
+     * @param {Object} system
+     * @param {Number} system.backlight - Backlight setting between 0 and 4.
+     * @param {Number} system.volume - Volume setting between 0 and 4.
+     * @param {Number} system.opp - Over-power protection setting in W.
+     * @param {Number} system.otp - Over-temperature protection setting in C (range: 50 – 80).
+     * @param {boolean} system.reverse_protection - Reverse protection setting.
+     * @param {boolean} system.audio_out - Audio output setting.
+     */
+    receiveSystemInfo ({ backlight, volume, opp, otp, reverse_protection, audio_out }) {
+      console.info('receiveSystemInfo', { backlight, volume, opp, otp, reverse_protection, audio_out })
+      this.system = { backlight, volume, opp, otp, reverse_protection, audio_out }
+    }
+
   }
 }

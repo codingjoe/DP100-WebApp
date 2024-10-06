@@ -85,12 +85,15 @@ export class DP100Element extends DP100(LitElement) {
   tHistory = []
   vHistory = []
   iHistory = []
-  wHistory = []
+  pHistory = []
 
   static properties = {
     device: { type: Object, attribute: false, reflect: true },
     settings: { type: Object, attribute: false, reflect: true },
-    info: { type: Object, attribute: false, reflect: true }
+    info: { type: Object, attribute: false, reflect: true },
+    vMax: { type: Number, attribute: false, reflect: true },
+    iMax: { type: Number, attribute: false, reflect: true },
+    pMax: { type: Number, attribute: false, reflect: true },
   }
   static styles = css`
     :host {
@@ -162,7 +165,7 @@ export class DP100Element extends DP100(LitElement) {
       grid-area: graph;
       border: thick solid CanvasText;
     }
-    
+
     #vOut, #iOut, #pOut {
       font-size: 2em;
       display: flex;
@@ -229,6 +232,13 @@ export class DP100Element extends DP100(LitElement) {
     }
   `
 
+  constructor () {
+    super()
+    this.vMax = 0
+    this.iMax = 0
+    this.pMax = 0
+  }
+
   render () {
     return html`
       <link href="https://cdn.jsdelivr.net/npm/uplot@1.6.31/dist/uPlot.min.css" rel="stylesheet">
@@ -259,6 +269,16 @@ export class DP100Element extends DP100(LitElement) {
                    max="${this.info?.voMax}" step="0.1">
           </div>
         </div>
+        <div class="group">
+          <div class="label">
+            V<sub>max</sub>
+          </div>
+          <div class="value-1">
+            ${(this.vMax).toLocaleString(undefined, { minimumFractionDigits: 3 })}
+          </div>
+          <div class="value-2">
+          </div>
+        </div>
       </div>
       <div id="iOut">
         <div class="group">
@@ -286,6 +306,16 @@ export class DP100Element extends DP100(LitElement) {
                    max="5" step="0.1">
           </div>
         </div>
+        <div class="group">
+          <div class="label">
+            A<sub>max</sub>
+          </div>
+          <div class="value-1">
+            ${(this.iMax).toLocaleString(undefined, { minimumFractionDigits: 3 })}
+          </div>
+          <div class="value-2">
+          </div>
+        </div>
       </div>
       <div id="pOut">
         <div class="group">
@@ -293,9 +323,19 @@ export class DP100Element extends DP100(LitElement) {
             W<sub>out</sub>
           </div>
           <div class="value-1">
+            ${(this.info?.iOut * this.info?.vOut).toLocaleString(undefined, { minimumFractionDigits: 3 })}
           </div>
           <div class="value-2">
-            ${(this.info?.iOut * this.info?.vOut).toLocaleString(undefined, { minimumFractionDigits: 3 })}
+          </div>
+        </div>
+        <div class="group">
+          <div class="label">
+            W<sub>max</sub>
+          </div>
+          <div class="value-1">
+            ${(this.pMax).toLocaleString(undefined, { minimumFractionDigits: 3 })}
+          </div>
+          <div class="value-2">
           </div>
         </div>
       </div>
@@ -303,14 +343,18 @@ export class DP100Element extends DP100(LitElement) {
         ${this.renderMode()}
       </div>
       <div id="opp" class="group">
-        <div class="label"></div>
+        <div class="label">OPP</div>
         <div class="value-1">
-          OVP
-          ${this.settings?.ovp_set.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;V
+          V
+          <input type="number" @change=${this.changeOverVoltageProtection.bind(this)}
+                 .value=${this.settings?.ovp_set} min="0"
+                 max="30.5" step="0.01">
         </div>
         <div class="value-2">
-          OCP
-          ${this.settings?.ocp_set.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;A
+          A
+          <input type="number" @change=${this.changeOverCurrentProtection.bind(this)}
+                 .value=${this.settings?.ocp_set} min="0"
+                 max="5.05" step="0.001">
         </div>
       </div>
       <div id="vInMax" class="group">
@@ -367,15 +411,23 @@ export class DP100Element extends DP100(LitElement) {
   }
 
   togglePower () {
-    this.setBasicSettings({ state: this.settings.state ? 0 : 1 })
+    this.setBasicOutput({ state: this.settings.state ? 0 : 1 })
   }
 
   changeVoltage (event) {
-    this.setBasicSettings({ vo_set: event.target.value })
+    this.setBasicOutput({ vo_set: event.target.value })
   }
 
   changeCurrent (event) {
-    this.setBasicSettings({ io_set: event.target.value })
+    this.setBasicOutput({ io_set: event.target.value })
+  }
+
+  changeOverVoltageProtection (event) {
+    this.setBasicSettings({ ovp_set: event.target.value })
+  }
+
+  changeOverCurrentProtection (event) {
+    this.setBasicSettings({ ocp_set: event.target.value })
   }
 
   firstUpdated () {
@@ -384,23 +436,27 @@ export class DP100Element extends DP100(LitElement) {
       ...grapOptions,
       width: graphElement.offsetWidth,
       height: graphElement.offsetHeight - 48,
-    }, [this.tHistory, this.vHistory, this.iHistory, this.wHistory], graphElement)
+    }, [this.tHistory, this.vHistory, this.iHistory, this.pHistory], graphElement)
   }
 
   receiveBasicInfo ({ vIn, vOut, iOut, voMax, temp1, temp2, dc5V, outMode, workSt }) {
     super.receiveBasicInfo({ vIn, vOut, iOut, voMax, temp1, temp2, dc5V, outMode, workSt })
 
+    this.vMax = vOut > this.vMax ? vOut : this.vMax
+    this.iMax = iOut > this.iMax ? iOut : this.iMax
+    this.pMax = vOut * iOut > this.pMax ? vOut * iOut : this.pMax
+
     this.tHistory.push(Date.now() / 1000)  // uplot uses seconds
     this.vHistory.push(vOut)
     this.iHistory.push(iOut)
-    this.wHistory.push(vOut * iOut)
+    this.pHistory.push(vOut * iOut)
     if (this.vHistory.length > 30 * 1000 / this.refreshRate) {
       this.tHistory.shift()
       this.vHistory.shift()
       this.iHistory.shift()
-      this.wHistory.shift()
+      this.pHistory.shift()
     }
-    this.graph.setData([this.tHistory, this.vHistory, this.iHistory, this.wHistory])
+    this.graph.setData([this.tHistory, this.vHistory, this.iHistory, this.pHistory])
   }
 }
 
