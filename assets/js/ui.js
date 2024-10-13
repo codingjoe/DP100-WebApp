@@ -99,15 +99,19 @@ export class DP100Element extends DP100(LitElement) {
     :host {
       display: grid;
       grid-template:
-        "graph graph graph vOut" 2fr
-        "graph graph graph iOut" 2fr
-        "graph graph graph pOut" 1fr
-        "mode opp vInMax info" 120px / 1fr 1fr 1fr 380px;
+        "graph graph graph vOut vOut" 2fr
+        "graph graph graph iOut iOut" 2fr
+        "graph graph graph pOut pOut" 1fr
+        "mode opp vInMax info reset" 120px / 1fr 1fr 1fr 200px 180px;
       height: 100vh;
     }
 
     * {
       font-family: monospace;
+    }
+    
+    .value {
+      font-size: 4vh;
     }
 
     .group {
@@ -115,7 +119,6 @@ export class DP100Element extends DP100(LitElement) {
       grid-template:
         "label value-1"
         "label value-2" / min-content auto;
-      padding: 1rem;
 
       .label {
         grid-area: label;
@@ -134,7 +137,7 @@ export class DP100Element extends DP100(LitElement) {
       }
 
       .value-1 {
-        margin: 0.25em 0 0;
+        margin: auto 0 0.8em;
 
         input {
           max-width: 4em;
@@ -150,6 +153,10 @@ export class DP100Element extends DP100(LitElement) {
       grid-template:
       "label value-1"
       "value-2 value-2" / min-content auto;
+      
+      .value-1 {
+        margin-left: -0.5em;
+      }
 
       .value-2 {
         grid-column: 1 / 3;
@@ -171,29 +178,51 @@ export class DP100Element extends DP100(LitElement) {
       display: flex;
       flex-direction: column;
       justify-content: space-evenly;
+      padding: 0 0.5em;
     }
 
     #vOut {
       grid-area: vOut;
-      background-color: rgb(250 200 0 / 30%);
+      background: repeating-linear-gradient(
+        135deg,
+        rgb(250 200 0 / 33%),
+        rgb(250 200 0 / 67%)
+      );
       border: thick solid rgb(250 200 0 / 100%);
     }
 
     #iOut {
       grid-area: iOut;
-      background-color: rgb(0 200 0 / 30%);
+      background: repeating-linear-gradient(
+        135deg,
+        rgb(0 200 0 / 33%),
+        rgb(0 200 0 / 67%)
+      );
       border: thick solid rgb(0 200 0 / 100%);
     }
 
     #pOut {
       grid-area: pOut;
-      background-color: rgb(200 0 200 / 30%);
+      background: repeating-linear-gradient(
+        135deg,
+        rgb(200 0 200 / 33%),
+        rgb(200 0 200 / 67%)
+      );
       border: thick solid rgb(200 0 200 / 100%);
       font-size: 2em;
     }
-
+    
     #mode {
       grid-area: mode;
+    }
+    
+    #reset {
+      grid-area: reset;
+    }
+    
+    #opp, #vInMax, #info {
+      padding: 0.5em;
+      gap: 0.5em;
     }
 
     #opp {
@@ -219,10 +248,12 @@ export class DP100Element extends DP100(LitElement) {
       font-size: 1em;
       max-width: 4em;
       font-family: monospace;
+      border-bottom: medium dotted FieldText;
+      background-color: color-mix(in srgb, ButtonFace, transparent 50%);
     }
 
     button {
-      font-size: 5em;
+      font-size: 5vw;
       font-weight: bold;
       width: 100%;
       height: 100%;
@@ -237,6 +268,8 @@ export class DP100Element extends DP100(LitElement) {
     this.vMax = 0
     this.iMax = 0
     this.pMax = 0
+    this.energy = 0
+    this.timer = Date.now()
   }
 
   render () {
@@ -244,24 +277,14 @@ export class DP100Element extends DP100(LitElement) {
       <link href="https://cdn.jsdelivr.net/npm/uplot@1.6.31/dist/uPlot.min.css" rel="stylesheet">
       <div id="graph"></div>
       <div id="vOut">
-        <div class="group">
-          <div class="label">
-            V<sub>out</sub>
-          </div>
-          <div class="value-1">
-            ${this.info?.vOut.toLocaleString(undefined, { minimumFractionDigits: 3 })}
-          </div>
-          <div class="value-2">
-          </div>
-        </div>
         <div class="group group--big">
           <div class="label">
-            V<sub>set</sub>
+            <em>V</em><sub>set</sub>
           </div>
           <div class="value-1">
             <input type="number" name="vo_set" @change=${this.changeVoltage.bind(this)}
                    .value=${this.settings?.vo_set} min="0"
-                   max="${this.info?.voMax}" step="0.001">
+                   max="${this.info?.voMax}" step="0.001">V
           </div>
           <div class="value-2">
             <input type="range" name="vo_set" @input=${this.changeVoltage.bind(this)}
@@ -269,36 +292,34 @@ export class DP100Element extends DP100(LitElement) {
                    max="${this.info?.voMax}" step="0.1">
           </div>
         </div>
-        <div class="group">
-          <div class="label">
-            V<sub>max</sub>
-          </div>
-          <div class="value-1">
-            ${(this.vMax).toLocaleString(undefined, { minimumFractionDigits: 3 })}
-          </div>
-          <div class="value-2">
-          </div>
+        <div class="value">
+          <strong><em>V</em></strong><sub>out</sub>
+          ${this.info?.vOut.toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            minimumIntegerDigits: 2,
+            useGrouping: false
+          })}
+          V
+        </div>
+        <div class="value">
+          <strong><em>V</em></strong><sub>max</sub>
+          ${(this.vMax).toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            minimumIntegerDigits: 2,
+            useGrouping: false
+          })}
+          V
         </div>
       </div>
       <div id="iOut">
-        <div class="group">
-          <div class="label">
-            A<sub>out</sub>
-          </div>
-          <div class="value-1">
-            ${this.info?.iOut.toLocaleString(undefined, { minimumFractionDigits: 3 })}
-          </div>
-          <div class="value-2">
-          </div>
-        </div>
         <div class="group group--big">
           <div class="label">
-            A<sub>set</sub>
+            <em>I</em><sub>set</sub>
           </div>
           <div class="value-1">
             <input type="number" @change=${this.changeCurrent.bind(this)}
                    .value=${this.settings?.io_set} min="0"
-                   max="5" step="0.001">
+                   max="5" step="0.001">A
           </div>
           <div class="value-2">
             <input type="range" @input="${this.changeCurrent.bind(this)}"
@@ -306,37 +327,53 @@ export class DP100Element extends DP100(LitElement) {
                    max="5" step="0.1">
           </div>
         </div>
-        <div class="group">
-          <div class="label">
-            A<sub>max</sub>
-          </div>
-          <div class="value-1">
-            ${(this.iMax).toLocaleString(undefined, { minimumFractionDigits: 3 })}
-          </div>
-          <div class="value-2">
-          </div>
+        <div class="value">
+          <strong><em>I</em></strong><sub>out</sub>
+          ${this.info?.iOut.toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            minimumIntegerDigits: 2,
+            useGrouping: false
+          })}
+          A
+        </div>
+        <div class="value">
+          <strong><em>I</em></strong><sub>max</sub>
+          ${(this.iMax).toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            minimumIntegerDigits: 2,
+            useGrouping: false
+          })}
+          A
         </div>
       </div>
       <div id="pOut">
-        <div class="group">
-          <div class="label">
-            W<sub>out</sub>
-          </div>
-          <div class="value-1">
-            ${(this.info?.iOut * this.info?.vOut).toLocaleString(undefined, { minimumFractionDigits: 3 })}
-          </div>
-          <div class="value-2">
-          </div>
+        <div class="value">
+          <strong><em>P</em></strong><sub>out</sub>
+          ${(this.info?.iOut * this.info?.vOut).toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            minimumIntegerDigits: 2,
+            useGrouping: false
+          })}
+          W
         </div>
-        <div class="group">
-          <div class="label">
-            W<sub>max</sub>
-          </div>
-          <div class="value-1">
-            ${(this.pMax).toLocaleString(undefined, { minimumFractionDigits: 3 })}
-          </div>
-          <div class="value-2">
-          </div>
+        <div class="value">
+          <strong><em>P</em></strong><sub>max</sub>
+          ${(this.pMax).toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            minimumIntegerDigits: 2,
+            useGrouping: false
+          })}
+          W
+        </div>
+        <div class="value">
+          <strong><em>E</em></strong><sub>out</sub>
+          ${(this.energy).toLocaleString(undefined, {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+            minimumIntegerDigits: 1,
+            useGrouping: false
+          })}
+          Wh
         </div>
       </div>
       <div id="mode">
@@ -345,33 +382,42 @@ export class DP100Element extends DP100(LitElement) {
       <div id="opp" class="group">
         <div class="label">OPP</div>
         <div class="value-1">
-          V
+          OVP
           <input type="number" @change=${this.changeOverVoltageProtection.bind(this)}
                  .value=${this.settings?.ovp_set} min="0"
                  max="30.5" step="0.01">
+          V
         </div>
         <div class="value-2">
-          A
+          OCP
           <input type="number" @change=${this.changeOverCurrentProtection.bind(this)}
                  .value=${this.settings?.ocp_set} min="0"
                  max="5.05" step="0.001">
+          A
         </div>
       </div>
       <div id="vInMax" class="group">
-        <div class="label">V</div>
-        <div class="value-1">In
+        <div class="label"><em>V</em></div>
+        <div class="value-1">in
           ${this.info?.vIn.toLocaleString(undefined, { minimumFractionDigits: 3, minimumIntegerDigits: 2 })}&numsp;V
         </div>
-        <div class="value-2">Out<sub>max</sub>
+        <div class="value-2">maxOut
           ${this.info?.voMax.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;V
         </div>
       </div>
       <div id="info" class="group">
         <div class="label">T</div>
-        <div class="value-1">T<sub>1</sub> ${this.info?.temp1.toLocaleString(undefined, { minimumFractionDigits: 1 })}&numsp;°C
+        <div class="value-1">
+          ${this.info?.temp1.toLocaleString(undefined, { minimumFractionDigits: 1 })}
+          °C
         </div>
-        <div class="value-2">T<sub>2</sub> ${this.info?.temp2.toLocaleString(undefined, { minimumFractionDigits: 1 })}&numsp;°C
+        <div class="value-2">
+          ${this.info?.temp2.toLocaleString(undefined, { minimumFractionDigits: 1 })}
+          °C
         </div>
+      </div>
+      <div id="reset">
+        <button @click=${this.reset.bind(this)}>RST</button>
       </div>
     `
   }
@@ -430,6 +476,14 @@ export class DP100Element extends DP100(LitElement) {
     this.setBasicSettings({ ocp_set: event.target.value })
   }
 
+  reset () {
+    this.energy = 0
+    this.timer = Date.now()
+    this.vMax = 0
+    this.iMax = 0
+    this.pMax = 0
+  }
+
   firstUpdated () {
     const graphElement = this.shadowRoot.querySelector('#graph')
     this.graph = new uplot({
@@ -445,6 +499,8 @@ export class DP100Element extends DP100(LitElement) {
     this.vMax = vOut > this.vMax ? vOut : this.vMax
     this.iMax = iOut > this.iMax ? iOut : this.iMax
     this.pMax = vOut * iOut > this.pMax ? vOut * iOut : this.pMax
+    this.energy += vOut * iOut * (Date.now() - this.timer) / 1000 / 3600
+    this.timer = Date.now()
 
     this.tHistory.push(Date.now() / 1000)  // uplot uses seconds
     this.vHistory.push(vOut)
