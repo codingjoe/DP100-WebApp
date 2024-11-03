@@ -102,7 +102,7 @@ export class DP100Element extends DP100(LitElement) {
         "graph graph graph vOut vOut" 2fr
         "graph graph graph iOut iOut" 2fr
         "graph graph graph pOut pOut" 1fr
-        "mode opp vInMax info reset" 120px / 1fr 1fr 1fr 200px 180px;
+        "mode opp vInMax info reset" 120px / 1fr 1fr 1fr minmax(24vh, max-content) minmax(18vh, max-content);
       height: 100vh;
     }
 
