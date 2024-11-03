@@ -99,11 +99,12 @@ export class DP100Element extends DP100(LitElement) {
     :host {
       display: grid;
       grid-template:
-        "graph graph graph vOut vOut" 2fr
-        "graph graph graph iOut iOut" 2fr
-        "graph graph graph pOut pOut" 1fr
-        "mode opp vInMax info reset" 120px / 1fr 1fr 1fr minmax(24vh, max-content) minmax(18vh, max-content);
+        "graph graph graph vOut" 2fr
+        "graph graph graph iOut" 2fr
+        "graph graph graph pOut" 1fr
+        "controls controls controls controls" 120px / 1fr 1fr 1fr minmax(42vh, max-content);
       height: 100vh;
+      overflow: hidden;
     }
 
     * {
@@ -123,7 +124,7 @@ export class DP100Element extends DP100(LitElement) {
       .label {
         grid-area: label;
         font-weight: bold;
-        font-size: 4em;
+        font-size: min(4vw, 4em);
         margin: auto 0;
 
         sub {
@@ -212,31 +213,22 @@ export class DP100Element extends DP100(LitElement) {
       font-size: 2em;
     }
     
-    #mode {
-      grid-area: mode;
+    #controls {
+      grid-area: controls;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      gap: 1em;
     }
     
-    #reset {
-      grid-area: reset;
+    #mode {
+      flex: 0 0 32vw;
     }
     
     #opp, #vInMax, #info {
       padding: 0.5em;
       gap: 0.5em;
     }
-
-    #opp {
-      grid-area: opp;
-    }
-
-    #vInMax {
-      grid-area: vInMax;
-    }
-
-    #info {
-      grid-area: info;
-    }
-
 
     input:invalid {
       border: medium dashed red;
@@ -253,7 +245,7 @@ export class DP100Element extends DP100(LitElement) {
     }
 
     button {
-      font-size: 5vw;
+      font-size: min(5vw, 5em);
       font-weight: bold;
       width: 100%;
       height: 100%;
@@ -376,48 +368,50 @@ export class DP100Element extends DP100(LitElement) {
           Wh
         </div>
       </div>
-      <div id="mode">
-        ${this.renderMode()}
-      </div>
-      <div id="opp" class="group">
-        <div class="label">OPP</div>
-        <div class="value-1">
-          OVP
-          <input type="number" @change=${this.changeOverVoltageProtection.bind(this)}
-                 .value=${this.settings?.ovp_set} min="0"
-                 max="30.5" step="0.01">
-          V
+      <div id="controls">
+        <div id="mode">
+          ${this.renderMode()}
         </div>
-        <div class="value-2">
-          OCP
-          <input type="number" @change=${this.changeOverCurrentProtection.bind(this)}
-                 .value=${this.settings?.ocp_set} min="0"
-                 max="5.05" step="0.001">
-          A
+        <div id="opp" class="group">
+          <div class="label">OPP</div>
+          <div class="value-1">
+            OVP
+            <input type="number" @change=${this.changeOverVoltageProtection.bind(this)}
+                   .value=${this.settings?.ovp_set} min="0"
+                   max="30.5" step="0.01">
+            V
+          </div>
+          <div class="value-2">
+            OCP
+            <input type="number" @change=${this.changeOverCurrentProtection.bind(this)}
+                   .value=${this.settings?.ocp_set} min="0"
+                   max="5.05" step="0.001">
+            A
+          </div>
         </div>
-      </div>
-      <div id="vInMax" class="group">
-        <div class="label"><em>V</em></div>
-        <div class="value-1">in
-          ${this.info?.vIn.toLocaleString(undefined, { minimumFractionDigits: 3, minimumIntegerDigits: 2 })}&numsp;V
+        <div id="vInMax" class="group">
+          <div class="label"><em>V</em></div>
+          <div class="value-1">in
+            ${this.info?.vIn.toLocaleString(undefined, { minimumFractionDigits: 3, minimumIntegerDigits: 2 })}&numsp;V
+          </div>
+          <div class="value-2">maxOut
+            ${this.info?.voMax.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;V
+          </div>
         </div>
-        <div class="value-2">maxOut
-          ${this.info?.voMax.toLocaleString(undefined, { minimumFractionDigits: 3 })}&numsp;V
+        <div id="info" class="group">
+          <div class="label">T</div>
+          <div class="value-1">
+            ${this.info?.temp1.toLocaleString(undefined, { minimumFractionDigits: 1 })}
+            °C
+          </div>
+          <div class="value-2">
+            ${this.info?.temp2.toLocaleString(undefined, { minimumFractionDigits: 1 })}
+            °C
+          </div>
         </div>
-      </div>
-      <div id="info" class="group">
-        <div class="label">T</div>
-        <div class="value-1">
-          ${this.info?.temp1.toLocaleString(undefined, { minimumFractionDigits: 1 })}
-          °C
+        <div id="reset">
+          <button @click=${this.reset.bind(this)}>RST</button>
         </div>
-        <div class="value-2">
-          ${this.info?.temp2.toLocaleString(undefined, { minimumFractionDigits: 1 })}
-          °C
-        </div>
-      </div>
-      <div id="reset">
-        <button @click=${this.reset.bind(this)}>RST</button>
       </div>
     `
   }
