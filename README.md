@@ -16,7 +16,7 @@ A browser interface for the DP100 digital power supply by Alientek.
 
 Grap you DP100 power supply and connect the DP100 via it's USB-A port to your computer.
 
-Now, visit [DP100 WebApp](https://johannes.maron.family/DP100-WebApp/) and you're good to go.
+Now, visit [DP100 WebApp]([[https://johannes.maron.family/DP100-WebApp/]()](https://codingjoe.dev/DP100-WebApp/)) and you're good to go.
 
 _Note, not all browsers support WebHID yet and on Linux you might need to enable write mode first,
 see [Contributing Guide](CONTRIBUTING.md)._
