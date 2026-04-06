@@ -94,6 +94,8 @@ export class DP100Element extends DP100(LitElement) {
     vMax: { type: Number, attribute: false, reflect: true },
     iMax: { type: Number, attribute: false, reflect: true },
     pMax: { type: Number, attribute: false, reflect: true },
+    vRange: { type: Number, attribute: false, reflect: true },
+    iRange: { type: Number, attribute: false, reflect: true },
   }
   static styles = css`
     :host {
@@ -262,6 +264,8 @@ export class DP100Element extends DP100(LitElement) {
     this.pMax = 0
     this.energy = 0
     this.timer = Date.now()
+    this.vRange = 30
+    this.iRange = 5
   }
 
   render () {
@@ -302,6 +306,11 @@ export class DP100Element extends DP100(LitElement) {
           })}
           V
         </div>
+        <div class="value">
+          <em>V</em><sub>scale</sub>
+          <input type="number" @change=${this.changeVoltageScale.bind(this)}
+                 .value=${this.vRange} min="0.1" max="30" step="0.5" data-graph-scale aria-label="Voltage scale">V
+        </div>
       </div>
       <div id="iOut">
         <div class="group group--big">
@@ -336,6 +345,11 @@ export class DP100Element extends DP100(LitElement) {
             useGrouping: false
           })}
           A
+        </div>
+        <div class="value">
+          <em>I</em><sub>scale</sub>
+          <input type="number" @change=${this.changeCurrentScale.bind(this)}
+                 .value=${this.iRange} min="0.1" max="5" step="0.1" data-graph-scale aria-label="Current scale">A
         </div>
       </div>
       <div id="pOut">
@@ -445,7 +459,7 @@ export class DP100Element extends DP100(LitElement) {
   }
 
   updated () {
-    this.shadowRoot.querySelectorAll('input').forEach(input => {
+    this.shadowRoot.querySelectorAll('input:not([data-graph-scale])').forEach(input => {
       input.disabled = !this.device
     })
   }
@@ -468,6 +482,22 @@ export class DP100Element extends DP100(LitElement) {
 
   changeOverCurrentProtection (event) {
     this.setBasicSettings({ ocp_set: event.target.value })
+  }
+
+  changeVoltageScale (event) {
+    const value = parseFloat(event.target.value)
+    if (!this.graph || !(value > 0)) return
+    this.vRange = value
+    this.graph.setScale('V', { min: 0, max: value })
+    this.graph.setScale('W', { min: 0, max: value * this.iRange })
+  }
+
+  changeCurrentScale (event) {
+    const value = parseFloat(event.target.value)
+    if (!this.graph || !(value > 0)) return
+    this.iRange = value
+    this.graph.setScale('A', { min: 0, max: value })
+    this.graph.setScale('W', { min: 0, max: this.vRange * value })
   }
 
   reset () {
