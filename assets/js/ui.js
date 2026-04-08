@@ -15,7 +15,7 @@ const grapOptions = {
       show: true,
       spanGaps: true,
       label: 'Voltage',
-      value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'V',
+      value: (self, rawValue) => rawValue === null ? 'N/A' : `${rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 })}V`,
       scale: 'V',
       stroke: 'rgb(250, 200, 0)',
       width: 2,
@@ -23,7 +23,7 @@ const grapOptions = {
       show: true,
       spanGaps: true,
       label: 'Current',
-      value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'A',
+      value: (self, rawValue) => rawValue === null ? 'N/A' : `${rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 })}A`,
       scale: 'A',
       stroke: 'green',
       width: 2,
@@ -31,7 +31,7 @@ const grapOptions = {
       show: true,
       spanGaps: true,
       label: 'Power',
-      value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'W',
+      value: (self, rawValue) => rawValue === null ? 'N/A' : `${rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 })}W`,
       scale: 'W',
       fill: 'rgba(200, 0, 200, 0.3)',
       width: 0,
@@ -44,7 +44,7 @@ const grapOptions = {
     {
       scale: 'V',
       label: 'Voltage (V)',
-      value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'V',
+      value: (self, rawValue) => rawValue === null ? 'N/A' : `${rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 })}V`,
       grid: { show: false },
       stroke: () => dark ? 'white' : 'black',
       ticks: {
@@ -54,7 +54,7 @@ const grapOptions = {
     {
       scale: 'A',
       label: 'Current (A)',
-      value: (self, rawValue) => rawValue === null ? 'N/A' : rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 }) + 'A',
+      value: (self, rawValue) => rawValue === null ? 'N/A' : `${rawValue.toLocaleString(undefined, { minimumFractionDigits: 3 })}A`,
       side: 1,
       grid: { show: false },
       stroke: () => dark ? 'white' : 'black',
@@ -110,7 +110,7 @@ export class DP100Element extends DP100(LitElement) {
     * {
       font-family: monospace;
     }
-    
+
     .value {
       font-size: 4vh;
     }
@@ -154,7 +154,7 @@ export class DP100Element extends DP100(LitElement) {
       grid-template:
       "label value-1"
       "value-2 value-2" / min-content auto;
-      
+
       .value-1 {
         margin-left: -0.5em;
       }
@@ -212,7 +212,7 @@ export class DP100Element extends DP100(LitElement) {
       border: thick solid rgb(200 0 200 / 100%);
       font-size: 2em;
     }
-    
+
     #controls {
       grid-area: controls;
       display: flex;
@@ -220,11 +220,11 @@ export class DP100Element extends DP100(LitElement) {
       justify-content: space-between;
       gap: 1em;
     }
-    
+
     #mode {
       flex: 0 0 32vw;
     }
-    
+
     #opp, #vInMax, #info {
       padding: 0.5em;
       gap: 0.5em;
