@@ -1,0 +1,43 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-yaml
+      - id: debug-statements
+      - id: destroyed-symlinks
+      - id: check-executables-have-shebangs
+      - id: end-of-file-fixer
+      - id: no-commit-to-branch
+        args: [--branch, main]
+      - id: detect-private-key
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-footnote
+          - mdformat-gfm
+          - mdformat-gfm-alerts
+        # exclude .github/agents/*.md
+        exclude: ^\.github/agents/.*\.agent\.md$
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.21.0
+    hooks:
+      - id: yamlfmt
+  - repo: https://github.com/codingjoe/esupgrade
+    rev: 2025.15.0
+    hooks:
+      - id: esupgrade
+  - repo: https://github.com/btford/write-good
+    rev: v1.0.8
+    hooks:
+      - id: write-good
+        args: [--no-passive]
+ci:
+  autoupdate_schedule: weekly
+  skip:
+    - no-commit-to-branch
+    - write-good

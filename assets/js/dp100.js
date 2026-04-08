@@ -136,9 +136,13 @@ export function DP100 (Base) {
         throw new Error('Settings not loaded')
       }
       console.info('setBasicOutput', { state, vo_set, io_set })
-      const basicSet = Object.assign({}, this.settings, Object.fromEntries(Object.entries({
-        state, vo_set, io_set
-      }).filter(([k, v]) => v !== undefined)))
+      const basicSet = {
+        ...this.settings,
+
+        ...Object.fromEntries(Object.entries({
+          state, vo_set, io_set
+        }).filter(([k, v]) => v !== undefined))
+      }
       this.settingsQueue.push(basicSet)
       const out = new Uint8Array(10)
       const outDv = new DataView(out.buffer, out.byteOffset, out.length)
@@ -154,9 +158,13 @@ export function DP100 (Base) {
         throw new Error('Settings not loaded')
       }
       console.info('setBasicSettings', { ovp_set, ocp_set })
-      const basicSet = Object.assign({}, this.settings, Object.fromEntries(Object.entries({
-        ovp_set, ocp_set
-      }).filter(([k, v]) => v !== undefined)))
+      const basicSet = {
+        ...this.settings,
+
+        ...Object.fromEntries(Object.entries({
+          ovp_set, ocp_set
+        }).filter(([k, v]) => v !== undefined))
+      }
       this.settingsQueue.push(basicSet)
       const out = new Uint8Array(10)
       const outDv = new DataView(out.buffer, out.byteOffset, out.length)
@@ -289,5 +297,5 @@ export function DP100 (Base) {
       this.system = { backlight, volume, opp, otp, reverse_protection, audio_out }
     }
 
-  }
+  };
 }
