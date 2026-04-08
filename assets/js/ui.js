@@ -444,10 +444,17 @@ export class DP100Element extends DP100(LitElement) {
     }
   }
 
-  updated () {
+  updated (changedProperties) {
     this.shadowRoot.querySelectorAll('input').forEach(input => {
       input.disabled = !this.device
     })
+    if (changedProperties.has('settings') && this.graph && this.settings) {
+      const ovp = parseFloat(this.settings.ovp_set) || 30
+      const ocp = parseFloat(this.settings.ocp_set) || 5
+      this.graph.setScale('V', { min: 0, max: ovp })
+      this.graph.setScale('A', { min: 0, max: ocp })
+      this.graph.setScale('W', { min: 0, max: ovp * ocp })
+    }
   }
 
   togglePower () {
