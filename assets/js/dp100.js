@@ -1,4 +1,4 @@
-const vendorId = 11836, productId = 44801  // DP100's HID IDs
+const vendorId = 11_836, productId = 44_801  // DP100's HID IDs
 const deviceAddr = 251  // DP100's device address
 
 /**
@@ -111,7 +111,7 @@ export function DP100 (Base) {
      * @returns {Promise<void>} -- A promise that resolves when the report is sent.
      */
     async sendReport (functionId, content = null, sequence = null) {
-      content = content || new Uint8Array([0])
+      content ||= new Uint8Array([0])
       const header = [deviceAddr, functionId, sequence, // sequence, unused if there is no content
         content.length, ...content, 0, // checksum
         0  // checksum
