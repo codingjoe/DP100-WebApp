@@ -4,6 +4,10 @@ A browser interface for the DP100 digital power supply by Alientek.
 
 ![Screenshot 2024-10-13 at 15.02.31.png](Screenshot%202024-10-13%20at%2015.02.31.png)
 
+## Sponsors
+
+[![Sponsors](https://django.the-box.sh/sponsors/codingjoe/DP100-WebApp.svg)](https://github.com/sponsors/codingjoe)
+
 ## Features
 
 - 🌐 Connect to the DP100 using your browser (no installation required).
