@@ -8,16 +8,16 @@ const deviceAddr = 251  // DP100's device address
  * @returns {Number} - The CRC16 checksum.
  */
 export function crc16 (buffer) {
-  let crc = 0xFFFF
+  let crc = 0xFF_FF
 
   for (const byte of new Uint8Array(buffer)) {
     crc = crc ^ byte
 
     for (let j = 0; j < 8; j++) {
-      const odd = crc & 0x0001
+      const odd = crc & 0x00_01
       crc = crc >> 1
       if (odd) {
-        crc = crc ^ 0xA001
+        crc = crc ^ 0xA0_01
       }
     }
   }
