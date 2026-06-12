@@ -4,17 +4,31 @@
   <meta charSet="utf-8">
   <title>DP100 WebApp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="assets/icons/icon512_rounded.png" type="image/png">
   <style>
     :root {
       color-scheme: light dark;
+      --bg-color: light-dark(#f8fafc, #0f172a);
+      --text-color: light-dark(#1e293b, #f1f5f9);
+      --font-sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
     body {
-      color: CanvasText;
-      background-color: Canvas;
+      color: var(--text-color);
+      background-color: var(--bg-color);
       margin: 0;
+      font-family: var(--font-sans);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    dp100-element {
+      flex: 1;
     }
   </style>
   <script type="importmap">
