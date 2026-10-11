@@ -1,5 +1,6 @@
-const vendorId = 11_836, productId = 44_801  // DP100's HID IDs
-const deviceAddr = 251  // DP100's device address
+const vendorId = 11_836,
+  productId = 44_801 // DP100's HID IDs
+const deviceAddr = 251 // DP100's device address
 
 /**
  * Calculate the buffers CRC-16/MODBUS checksum.
@@ -7,8 +8,8 @@ const deviceAddr = 251  // DP100's device address
  * @param {ArrayBuffer} buffer - The buffer to calculate the CRC16 for.
  * @returns {Number} - The CRC16 checksum.
  */
-export function crc16 (buffer) {
-  let crc = 0xFF_FF
+export function crc16(buffer) {
+  let crc = 0xff_ff
 
   for (const byte of new Uint8Array(buffer)) {
     crc = crc ^ byte
@@ -17,7 +18,7 @@ export function crc16 (buffer) {
       const odd = crc & 0x00_01
       crc = crc >> 1
       if (odd) {
-        crc = crc ^ 0xA0_01
+        crc = crc ^ 0xa0_01
       }
     }
   }
@@ -27,26 +28,26 @@ export function crc16 (buffer) {
 
 /** DP100 Modbus Function IDs */
 const FUNCTIONS = Object.freeze({
-  DEVICE_INFO: 0x10,  // 16
-  FIRM_INFO: 0x11,  // 17
-  START_TRANS: 0x12,  // 18
-  DATA_TRANS: 0x13,  // 19
-  END_TRANS: 0x14,  // 20
-  DEV_UPGRADE: 0x15,  // 21
-  BASIC_INFO: 0x30,  // 48
-  BASIC_SET: 0x35,  // 53
-  SYSTEM_INFO: 0x40,  // 64
-  SYSTEM_SET: 0x45,  // 69
-  SCAN_OUT: 0x50,  // 80
-  SERIAL_OUT: 0x55,  // 85
-  DISCONNECT: 0x80,  // 128
-  NONE: 0xFF  // 255
+  DEVICE_INFO: 0x10, // 16
+  FIRM_INFO: 0x11, // 17
+  START_TRANS: 0x12, // 18
+  DATA_TRANS: 0x13, // 19
+  END_TRANS: 0x14, // 20
+  DEV_UPGRADE: 0x15, // 21
+  BASIC_INFO: 0x30, // 48
+  BASIC_SET: 0x35, // 53
+  SYSTEM_INFO: 0x40, // 64
+  SYSTEM_SET: 0x45, // 69
+  SCAN_OUT: 0x50, // 80
+  SERIAL_OUT: 0x55, // 85
+  DISCONNECT: 0x80, // 128
+  NONE: 0xff, // 255
 })
 
 const MAGIC_BYTES = Object.freeze({
-  OUTPUT: 0x20,  // 32
-  SETTING: 0x40,  // 64
-  READ: 0x80  // 128
+  OUTPUT: 0x20, // 32
+  SETTING: 0x40, // 64
+  READ: 0x80, // 128
 })
 
 /** DP100 device class.
@@ -75,16 +76,15 @@ const MAGIC_BYTES = Object.freeze({
  * @mixin
  * @returns {Base} The new class.
  */
-export function DP100 (Base) {
+export function DP100(Base) {
   return class extends Base {
-
     settingsQueue = []
-    refreshRate = 10  // 10ms (100Hz)
+    refreshRate = 10 // 10ms (100Hz)
 
     /** Connect to the DP100 device. */
-    async connect () {
-      [this.device] = await navigator.hid.requestDevice({
-        filters: [{ vendorId, productId }]
+    async connect() {
+      ;[this.device] = await navigator.hid.requestDevice({
+        filters: [{ vendorId, productId }],
       })
       await this.device.open()
       this.device.addEventListener('inputreport', this.inputReportHandler.bind(this))
@@ -110,11 +110,16 @@ export function DP100 (Base) {
      * @param {Number} sequence -- The sequence number for the report.
      * @returns {Promise<void>} -- A promise that resolves when the report is sent.
      */
-    async sendReport (functionId, content = null, sequence = null) {
+    async sendReport(functionId, content = null, sequence = null) {
       content ||= new Uint8Array([0])
-      const header = [deviceAddr, functionId, sequence, // sequence, unused if there is no content
-        content.length, ...content, 0, // checksum
-        0  // checksum
+      const header = [
+        deviceAddr,
+        functionId,
+        sequence, // sequence, unused if there is no content
+        content.length,
+        ...content,
+        0, // checksum
+        0, // checksum
       ]
       if (sequence === null) {
         header.splice(2, 1)
@@ -127,11 +132,11 @@ export function DP100 (Base) {
       return await this.device.sendReport(0, report)
     }
 
-    async getBasicSettings () {
+    async getBasicSettings() {
       await this.sendReport(FUNCTIONS.BASIC_SET, new Uint8Array([MAGIC_BYTES.READ]), 0)
     }
 
-    async setBasicOutput ({ state, vo_set, io_set }) {
+    async setBasicOutput({ state, vo_set, io_set }) {
       if (this.settings === undefined) {
         throw new Error('Settings not loaded')
       }
@@ -139,9 +144,13 @@ export function DP100 (Base) {
       const basicSet = {
         ...this.settings,
 
-        ...Object.fromEntries(Object.entries({
-          state, vo_set, io_set
-        }).filter(([k, v]) => v !== undefined))
+        ...Object.fromEntries(
+          Object.entries({
+            state,
+            vo_set,
+            io_set,
+          }).filter(([k, v]) => v !== undefined),
+        ),
       }
       this.settingsQueue.push(basicSet)
       const out = new Uint8Array(10)
@@ -153,7 +162,7 @@ export function DP100 (Base) {
       await this.sendReport(FUNCTIONS.BASIC_SET, out, 0)
     }
 
-    async setBasicSettings ({ ovp_set, ocp_set }) {
+    async setBasicSettings({ ovp_set, ocp_set }) {
       if (this.settings === undefined) {
         throw new Error('Settings not loaded')
       }
@@ -161,9 +170,12 @@ export function DP100 (Base) {
       const basicSet = {
         ...this.settings,
 
-        ...Object.fromEntries(Object.entries({
-          ovp_set, ocp_set
-        }).filter(([k, v]) => v !== undefined))
+        ...Object.fromEntries(
+          Object.entries({
+            ovp_set,
+            ocp_set,
+          }).filter(([k, v]) => v !== undefined),
+        ),
       }
       this.settingsQueue.push(basicSet)
       const out = new Uint8Array(10)
@@ -177,7 +189,7 @@ export function DP100 (Base) {
     /** Handle input reports from the DP100
      * @param {HIDInputReportEvent} event
      */
-    inputReportHandler (event) {
+    inputReportHandler(event) {
       console.debug('device.inputreport', event)
       const data = event.data
       const headerLength = 4
@@ -192,7 +204,8 @@ export function DP100 (Base) {
       const computedChecksum = crc16(data.buffer.slice(0, headerLength + header.contentLength))
       if (computedChecksum !== checksum) {
         console.error('Checksum Failed', {
-          expected: computedChecksum.toString(16), received: checksum.toString(16)
+          expected: computedChecksum.toString(16),
+          received: checksum.toString(16),
         })
         return
       }
@@ -207,7 +220,7 @@ export function DP100 (Base) {
             temp2: contentView.getUint16(10, true) / 10,
             dc5V: contentView.getUint16(12, true) / 1000,
             outMode: contentView.getUint8(14),
-            workSt: contentView.getUint8(15)
+            workSt: contentView.getUint8(15),
           })
           break
         case FUNCTIONS.BASIC_SET:
@@ -264,7 +277,7 @@ export function DP100 (Base) {
      * @param {Number} basicInfo.outMode - Output mode.
      * @param {Number} basicInfo.workSt - Work state.
      */
-    receiveBasicInfo ({ vIn, vOut, iOut, voMax, temp1, temp2, dc5V, outMode, workSt }) {
+    receiveBasicInfo({ vIn, vOut, iOut, voMax, temp1, temp2, dc5V, outMode, workSt }) {
       console.debug('receiveBasicInfo', { vIn, vOut, iOut, voMax, temp1, temp2, dc5V, outMode, workSt })
       this.info = { vIn, vOut, iOut, voMax, temp1, temp2, dc5V, outMode, workSt }
     }
@@ -278,7 +291,7 @@ export function DP100 (Base) {
      * @param {Number} basicSettings.ovp_set - Over-voltage protection setting in V.
      * @param {Number} basicSettings.ocp_set - Over-current protection setting in A.
      */
-    receiveBasicSettings ({ ack, state, vo_set, io_set, ovp_set, ocp_set }) {
+    receiveBasicSettings({ ack, state, vo_set, io_set, ovp_set, ocp_set }) {
       console.info('receiveBasicSettings', { ack, state, vo_set, io_set, ovp_set, ocp_set })
       this.settings = { state, vo_set, io_set, ovp_set, ocp_set }
     }
@@ -292,10 +305,9 @@ export function DP100 (Base) {
      * @param {boolean} system.reverse_protection - Reverse protection setting.
      * @param {boolean} system.audio_out - Audio output setting.
      */
-    receiveSystemInfo ({ backlight, volume, opp, otp, reverse_protection, audio_out }) {
+    receiveSystemInfo({ backlight, volume, opp, otp, reverse_protection, audio_out }) {
       console.info('receiveSystemInfo', { backlight, volume, opp, otp, reverse_protection, audio_out })
       this.system = { backlight, volume, opp, otp, reverse_protection, audio_out }
     }
-
-  };
+  }
 }
